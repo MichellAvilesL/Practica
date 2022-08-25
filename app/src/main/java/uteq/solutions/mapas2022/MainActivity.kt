@@ -1,14 +1,22 @@
 package uteq.solutions.mapas2022
 
+import android.graphics.Color
 import android.graphics.Point
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Toast
 import com.google.android.gms.maps.*
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.Marker
+import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.PolylineOptions
 
-class MainActivity : AppCompatActivity(), OnMapReadyCallback,GoogleMap.OnMapClickListener {
-    lateinit var mMap:GoogleMap
+class MainActivity : AppCompatActivity(), OnMapReadyCallback,GoogleMap.OnMapClickListener,
+    GoogleMap.OnMarkerClickListener {
+    lateinit var mMap : GoogleMap
+    var puntos : ArrayList<LatLng> = ArrayList<LatLng>()
+    var marcadores : ArrayList<Marker> = ArrayList<Marker>()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -35,16 +43,44 @@ class MainActivity : AppCompatActivity(), OnMapReadyCallback,GoogleMap.OnMapClic
     }
 
     override fun onMapClick(point: LatLng) {
-        val proj:Projection = mMap.getProjection();
-        val coord:Point = proj.toScreenLocation(point);
-        
-        Toast.makeText(
-        this.applicationContext,
-        "Click\n" +
-        "Lat: " + point.latitude + "\n" +
-        "Lng: " + point.longitude + "\n" +
-        "X: " + coord.x + " - Y: " + coord.y,
-        Toast.LENGTH_SHORT).show();
+        val proj : Projection = mMap.getProjection();
+        val coord : Point = proj.toScreenLocation(point);
 
+        Toast.makeText(
+            this.applicationContext,
+            "Click\n" +
+                    "Lat: " + point.latitude + "\n" +
+                    "Lng: " + point.longitude + "\n" +
+                    "X: " + coord.x + " - Y: " + coord.y,
+            Toast.LENGTH_SHORT).show();
+
+        puntos.add(point)
+        mMap.addMarker(MarkerOptions().position(point)
+            .title("Punto " + puntos.size))
+
+        mMap.setOnMarkerClickListener(this)
+
+        if(puntos.size == 4){
+            var lineas : PolylineOptions = PolylineOptions()
+
+            for (punto: LatLng in puntos){
+
+                lineas.add(punto)
+            }
+
+            lineas.add(puntos.get(0))
+            lineas.width(8F)
+            lineas.color(Color.RED)
+            mMap.addPolyline(lineas)
+
+            puntos.clear()
+
+        }
+
+    }
+
+    override fun onMarkerClick(marker: Marker): Boolean {
+        marker.remove()
+        return false
     }
 }
